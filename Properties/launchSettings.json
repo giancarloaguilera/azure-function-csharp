@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "azure_function_csharp": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7287",
+      "launchBrowser": false
+    }
+  }
+}
