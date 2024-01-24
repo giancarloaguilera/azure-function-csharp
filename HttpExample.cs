@@ -47,7 +47,7 @@ public class HttpExample
 
         var users = FilterUsers(PopulateUsers(), query)
                         .OrderBy(u => u.first_name)
-                        .ThenBy(u=> u.last_name)
+                        .ThenBy(u => u.last_name)
                         .Take(take)
                         .ToList();
 
@@ -66,9 +66,29 @@ public class HttpExample
             throw new InvalidOperationException("No embedded CSV found");
         }
 
-        using var csv = new CsvReader(new StreamReader(csvStream), config);
+        using var reader = new StreamReader(csvStream);
+        using var csv = new CsvReader(reader, config);
 
-        return csv.GetRecords<User>().ToList();
+        csv.Read(); // skip header row
+
+        var users = new List<User>();
+
+        while (csv.Read())
+        {
+            users.Add(new User(
+                csv.GetField<int>(0),
+                csv.GetField(1)!,
+                csv.GetField(2)!,
+                csv.GetField(3)!,
+                csv.GetField(4)!,
+                csv.GetField(5)!,
+                csv.GetField(6)!,
+                csv.GetField(7)!,
+                csv.GetField(8)!
+            ));
+        }
+
+        return users;
     }
 
     public static IReadOnlyList<User> FilterUsers(IEnumerable<User> users, NameValueCollection query)
