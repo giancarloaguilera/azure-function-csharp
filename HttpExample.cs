@@ -1,6 +1,6 @@
 using System.Globalization;
 using System.Net;
-using System.Text.Json;
+using System.Reflection;
 using System.Web;
 using CsvHelper;
 using CsvHelper.Configuration;
@@ -54,8 +54,14 @@ public class HttpExample
 
     public static IReadOnlyList<User> PopulateUsers()
     {
-        using var reader = new StreamReader(Path.Combine("data", "system_users.csv"));
-        using var csv = new CsvReader(reader, config);
+        var csvStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("azure_function_csharp.system_users.csv");
+
+        if (csvStream is null)
+        {
+            throw new InvalidOperationException("No embedded CSV found");
+        }
+
+        using var csv = new CsvReader(new StreamReader(csvStream), config);
 
         return csv.GetRecords<User>().ToList();
     }
