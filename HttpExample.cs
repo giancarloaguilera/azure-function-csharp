@@ -1,3 +1,4 @@
+using System.Collections.Specialized;
 using System.Globalization;
 using System.Net;
 using System.Reflection;
@@ -44,7 +45,11 @@ public class HttpExample
             take = 10;
         }
 
-        var users = FilterUsers(PopulateUsers(), take, query["firstname"]);
+        var users = FilterUsers(PopulateUsers(), query)
+                        .OrderBy(u => u.first_name)
+                        .ThenBy(u=> u.last_name)
+                        .Take(take)
+                        .ToList();
 
         var response = req.CreateResponse(HttpStatusCode.OK);
         await response.WriteAsJsonAsync(users);
@@ -66,12 +71,18 @@ public class HttpExample
         return csv.GetRecords<User>().ToList();
     }
 
-    public static IReadOnlyList<User> FilterUsers(IEnumerable<User> users, int take, string? firstname)
+    public static IReadOnlyList<User> FilterUsers(IEnumerable<User> users, NameValueCollection query)
     {
+        var firstname = query["firstname"];
+        var lastname = query["lastname"];
+
         return users
-            .Where(x => string.IsNullOrEmpty(firstname) ||
+            .Where(x => (string.IsNullOrEmpty(firstname) ||
                         x.first_name.StartsWith(firstname, StringComparison.OrdinalIgnoreCase))
-            .Take(take)
+                        && 
+                        (string.IsNullOrEmpty(lastname) ||
+                        x.last_name.StartsWith(lastname, StringComparison.OrdinalIgnoreCase))
+                        )
             .ToList();
     }
 }
